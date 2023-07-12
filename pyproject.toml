@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "marinemate-api"
+version = "0.1.0"
+description = ""
+authors = ["weatherbetter12@gmail.com <weatherbetter12@gmail.com>"]
+readme = "README.md"
+packages = [{include = "marinemate_api"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^4.2.3"
+djangorestframework = "^3.14.0"
+django-environ = "^0.10.0"
+pre-commit = "^3.3.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+target-version = ['py39']
+exclude = '''
+  \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | ^.*\b(migrations)\b.*$
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 120
+skip = [".gitignore", "migrations"]
