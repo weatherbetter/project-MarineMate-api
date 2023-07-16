@@ -7,8 +7,8 @@ on:
 env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: marinemate-ecr-api
-  EB_APP : dockerdjango
-  EB_ENV : Dockerdjango-env
+  EB_APP : marinemate-eb-drf-app
+  EB_ENV : Marinemate-eb-drf-app-env
 jobs:
   build:
     name: Build Image
