@@ -1,4 +1,4 @@
-name: Build and push image to ECR
+name: Build, Push image to ECR and Deploy Elastic Beanstalk
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
 env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: marinemate-ecr-api
-  
+  EB_APP : dockerdjango
+  EB_ENV : Dockerdjango-env
 jobs:
   build:
     name: Build Image
@@ -21,20 +22,30 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
     - name: Get current time
       uses: 1466587594/get-current-time@v2
       id: current-time
       with:
         format: YYYY-MM-DDTHH-mm-ss
         utcOffset: "+09:00"
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
     - name: Build, tag, and push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-        IMAGE_TAG: deploy-${{steps.current-time.outputs.formattedTime}}
+        IMAGE_TAG: latest
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    - name: Deploy Elastic Beanstalk
+      uses: einaregilsson/beanstalk-deploy@v18
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: ${{ env.EB_APP }}
+        environment_name: ${{ env.EB_ENV }}
+        version_label: deploy-${{steps.current-time.outputs.formattedTime}}
+        region: ${{ env.AWS_REGION }}
+        deployment_package: docker-compose.yml
