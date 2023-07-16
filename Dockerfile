@@ -1,5 +1,5 @@
 #파이썬 3.10버전 이미지를 사용해 빌드
-FROM python:3.10
+FROM python:10
 
 # .pyc 파일을 생성하지 않도록 설정합니다.
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -15,8 +15,10 @@ ADD . /app
 # docker 작업 폴더설정
 WORKDIR /app 
 
+# RUN apt-get -y update && apt-get install -y \sudo \wget \libgl1-mesa-glx \libxml2-utils
+RUN python3 -m pip install --upgrade pip
 # 프로젝트 실행에 필요한 패키지들을 설치합니다.
-RUN pip install poetry
+RUN pip3 install poetry
 # 가상환경 안만들기
 RUN poetry config virtualenvs.create false
 # --no-root : doest not contain any element 오류 해결

@@ -1,0 +1,7 @@
+version: "3"
+services:
+  api:
+    image: "silver303/djangotest"
+    ports:
+      - "8000:8000"
+    restart: "always"
