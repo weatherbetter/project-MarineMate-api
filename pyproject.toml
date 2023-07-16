@@ -12,6 +12,7 @@ django = "^4.2.3"
 djangorestframework = "^3.14.0"
 django-environ = "^0.10.0"
 pre-commit = "^3.3.3"
+django-ebhealthcheck = "^2.0.2"
 
 
 [build-system]
