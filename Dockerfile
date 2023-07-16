@@ -15,7 +15,6 @@ ADD . /app
 # docker 작업 폴더설정
 WORKDIR /app 
 
-# RUN apt-get -y update && apt-get install -y \sudo \wget \libgl1-mesa-glx \libxml2-utils
 RUN python3 -m pip install --upgrade pip
 # 프로젝트 실행에 필요한 패키지들을 설치합니다.
 RUN pip3 install poetry
@@ -25,4 +24,4 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-root
 
 EXPOSE 8000
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000
