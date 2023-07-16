@@ -1,5 +1,5 @@
-#파이썬 3.10버전 이미지를 사용해 빌드
-FROM python:10
+#파이썬 3.9버전 이미지를 사용해 빌드
+FROM python:3.9
 
 # .pyc 파일을 생성하지 않도록 설정합니다.
 ENV PYTHONDONTWRITEBYTECODE 1
