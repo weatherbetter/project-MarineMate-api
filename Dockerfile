@@ -1,9 +1,9 @@
 #파이썬 3.9버전 이미지를 사용해 빌드
 FROM python:3.9
 
-# .pyc 파일을 생성하지 않도록 설정합니다.
+# .pyc 파일을 생성하지 않도록 설정
 ENV PYTHONDONTWRITEBYTECODE 1
-# 파이썬 로그가 버퍼링 없이 즉각적으로 출력하도록 설정합니다.
+# 파이썬 로그가 버퍼링 없이 즉각적으로 출력하도록 설정
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONIOENCODING=utf-8
 
@@ -16,7 +16,7 @@ ADD . /app
 WORKDIR /app 
 
 RUN python3 -m pip install --upgrade pip
-# 프로젝트 실행에 필요한 패키지들을 설치합니다.
+# 프로젝트 실행에 필요한 패키지 설치
 RUN pip3 install poetry
 # 가상환경 안만들기
 RUN poetry config virtualenvs.create false
@@ -24,4 +24,4 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-root
 
 EXPOSE 8000
-CMD python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000
+CMD python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000 --settings=config.settings.prod

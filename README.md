@@ -6,7 +6,7 @@
 
 **Framework:** Django REST framework
 
-**DB:** SQLite
+**DB:** (Local) SQLite / (Prod) MySQL
 
 ## Run Locally
 
@@ -16,19 +16,19 @@ Clone the project
   git clone git@github.com:weatherbetter/project-MarineMate-api.git
 ```
 
-Prerequisite
+Prerequisite in Local
 
 ```bash
   pip install poetry
   poetry install
   poetry shell
   pre-commit install
-  python manage.py makemigrations
-  python manage.py migrate
-  python manage.py createsuperuser
+  python manage.py makemigrations --settings=config.settings.local
+  python manage.py migrate --settings=config.settings.local
+  python manage.py createsuperuser --settings=config.settings.local
 ```
-Start the server
+Start the server in Local
 
 ```bash
-  python manage.py runserver
+  python manage.py runserver --settings=config.settings.local
 ```
