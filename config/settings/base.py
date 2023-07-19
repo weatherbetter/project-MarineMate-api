@@ -22,7 +22,7 @@ env = environ.Env(
 ALLOWED_HOSTS = ["*"]
 
 # Set the project base directory
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Take environment variables from .env file
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
@@ -123,15 +123,3 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": env("DBNAME"),
-        "USER": env("USER"),
-        "PASSWORD": env("PASSWORD"),
-        "HOST": env("HOST"),
-        "PORT": env("PORT"),
-        "OPTIONS": {"autocommit": True, "charset": "utf8mb4"},
-    }
-}
