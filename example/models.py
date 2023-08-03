@@ -101,8 +101,6 @@ class Accident(models.Model):
     month = models.IntegerField() # 월
     place = models.CharField(max_length=10) # 장소
     cause  = models.CharField(max_length=30) # 원인
-    report_arrival_hour = models.IntegerField() # 신고도착차_시간
-    report_arrival_min = models.IntegerField() # 신고도착차_분
 
 
 
