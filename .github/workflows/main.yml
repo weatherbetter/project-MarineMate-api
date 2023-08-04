@@ -2,7 +2,7 @@ name: Build, Push image to ECR and Deploy Elastic Beanstalk
 
 on:
   push:
-    branches: [ mains ]
+    branches: [ main ]
     
 env:
   AWS_REGION: eu-west-2
