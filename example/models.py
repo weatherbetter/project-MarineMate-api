@@ -8,7 +8,7 @@ from django.db import models
 # 해수욕장
 class Beach(models.Model):
     id = models.IntegerField(primary_key=True, null=False, default=0) # 해수욕장 코드
-    beach_name = models.CharField(max_length=10) # 해수욕장명
+    beach_name = models.CharField(max_length=15) # 해수욕장명
     location = models.CharField(max_length=10) # 지역
     sigungu = models.CharField(max_length=10) # 시군구
     
@@ -50,8 +50,9 @@ class BeachInfra(models.Model):
 
 # 풍속
 class WindSpeed(models.Model):
-    date = models.DateField() # 날짜
+    date = models.DateField(auto_now=True) # 날짜
     wind_speed = models.IntegerField() # 풍속
+    beach_name = models.CharField(max_length=15) # 해수욕장명
     # ForeignKey
     beach_id = models.OneToOneField(Beach, on_delete=models.CASCADE, db_column="beach_id")
     
@@ -60,8 +61,9 @@ class WindSpeed(models.Model):
 
 # 낮 최고기온
 class MaxTemperature(models.Model):
-    date = models.DateField() # 날짜
+    date = models.DateField(auto_now=True) # 날짜
     day_max_temp = models.FloatField() # 낮 최고기온
+    beach_name = models.CharField(max_length=15) # 해수욕장명
     # ForeignKey
     beach_id = models.OneToOneField(Beach, on_delete=models.CASCADE, db_column="beach_id")
     
@@ -70,8 +72,9 @@ class MaxTemperature(models.Model):
 
 # 파고
 class WaveHeight(models.Model):
-    date = models.DateField() # 날짜
+    date = models.DateField(auto_now=True) # 날짜
     wave_height = models.FloatField() # 파고
+    beach_name = models.CharField(max_length=15) # 해수욕장명
     # ForeignKey
     beach_id = models.OneToOneField(Beach, on_delete=models.CASCADE, db_column="beach_id")
     
@@ -80,8 +83,9 @@ class WaveHeight(models.Model):
 
 # 풍향
 class WindDirection(models.Model):
-    date = models.DateField() # 날짜
+    date = models.DateField(auto_now=True) # 날짜
     wind_direction = models.CharField(max_length=10) # 풍향
+    beach_name = models.CharField(max_length=15) # 해수욕장명
     # ForeignKey
     beach_id = models.OneToOneField(Beach, on_delete=models.CASCADE, db_column="beach_id")
     
@@ -106,7 +110,7 @@ class BeachScore(models.Model):
 # 해파리 점수
 class JellyfishScore(models.Model):
     jellyfish_score = models.IntegerField() # 해파리 점수
-    date = models.DateField() # 날짜
+    date = models.DateField(auto_now=True) # 날짜
     location = models.CharField(max_length=10) # 지역
     # ForeignKey
     beach_id = models.ForeignKey(Beach, on_delete=models.CASCADE, db_column="beach_id")
@@ -118,7 +122,7 @@ class JellyfishScore(models.Model):
 class RainfallScore(models.Model):
     rain_score = models.FloatField() # 강수 점수
     rain_prob = models.FloatField() # 강수 확률
-    date = models.DateField() # 날짜
+    date = models.DateField(auto_now=True) # 날짜
     beach_name = models.CharField(max_length=15) # 해수욕장
     # ForeignKey
     beach_id = models.ForeignKey(Beach, on_delete=models.CASCADE, db_column="beach_id")
