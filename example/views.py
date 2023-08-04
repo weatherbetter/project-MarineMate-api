@@ -1,6 +1,6 @@
 from rest_framework.request import Request
 from rest_framework.response import Response
-from .models import Accident, LifesavingEquipment, SafetyInfra, Rainfall, Jellyfish, BeachScore
+from .models import Accident, LifesavingEquipment, SafetyInfra, RainfallScore, JellyfishScore, BeachScore
 from .serializers import EquipmentSerializer
 from django.db.models import Count, F
 from django.http import HttpRequest, JsonResponse
