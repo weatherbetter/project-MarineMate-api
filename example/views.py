@@ -105,8 +105,16 @@ class BeachRecommendationView(APIView):
         # 사용자 입력 데이터
         region = request.GET.get('location')
 
+        # Validate 'location' parameter
+        if not region:
+            return Response({"error": "The 'location' parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+
         # BeachScore 테이블에서 선택한 지역의 beach_id 목록을 가져옵니다.
         beach_ids = BeachScore.objects.filter(location=region).values('beach_id')
+
+        # 오류 확인
+        if not beach_ids:
+            return Response({"error": "No beaches found in the given location."}, status=status.HTTP_404_NOT_FOUND)
 
         # 각 테이블에서 가장 최신 데이터를 가져오고 점수를 계산합니다.
         latest_rainfall_date = RainfallScore.objects.latest('date').date
@@ -138,6 +146,10 @@ class BeachRecommendationView(APIView):
                     elif table == beach_score:
                         beach_scores[row['beach_id']] = row['score']
                         beach_names[row['beach_id']] = row['beach_name']
+                        
+        # 오류 확인
+        if not scores:
+            return Response({"error": "Could not calculate scores for the beaches in the given location."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # 점수가 가장 높은 해수욕장 순으로 정렬합니다.
         sorted_beaches = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -155,4 +167,3 @@ class BeachRecommendationView(APIView):
         ]
 
         return Response(top_beaches)
-
