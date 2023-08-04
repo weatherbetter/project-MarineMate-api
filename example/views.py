@@ -1,11 +1,12 @@
 from rest_framework.request import Request
 from rest_framework.response import Response
-from .models import Accident, LifesavingEquipment, SafetyInfra
+from .models import Accident, LifesavingEquipment, SafetyInfra, Rainfall, Jellyfish, BeachScore
 from .serializers import EquipmentSerializer
-from django.db.models import Count
+from django.db.models import Count, F
 from django.http import HttpRequest, JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 
 
 def index(request: HttpRequest):
@@ -97,4 +98,61 @@ def safetyApi(request: Request):
         }
         
     return Response(data=response, status=status.HTTP_200_OK)
+
+
+class BeachRecommendationView(APIView):
+    def get(self, request, format=None):
+        # 사용자 입력 데이터
+        region = request.GET.get('location')
+
+        # BeachScore 테이블에서 선택한 지역의 beach_id 목록을 가져옵니다.
+        beach_ids = BeachScore.objects.filter(location=region).values('beach_id')
+
+        # 각 테이블에서 가장 최신 데이터를 가져오고 점수를 계산합니다.
+        latest_rainfall_date = Rainfall.objects.latest('date').date
+        rainfall = Rainfall.objects.filter(beach_id__in=beach_ids, date=latest_rainfall_date).annotate(score=F('rain_score')).values('beach_id', 'score')
+
+        latest_jellyfish_date = Jellyfish.objects.latest('date').date
+        jellyfish = Jellyfish.objects.filter(beach_id__in=beach_ids, date=latest_jellyfish_date).annotate(score=4 - F('jellyfish_score')).values('beach_id', 'score')
+
+        beach_score = BeachScore.objects.filter(location=region).annotate(score=F('water_score') + F('soil_score') + F('facility_score')).values('beach_id', 'score', 'beach_name')
+
+        # 각 테이블의 점수를 합산합니다.
+        scores = {}
+        beach_scores = {}
+        rainfall_scores = {}
+        jellyfish_scores = {}
+        beach_names = {}
+        for table in [rainfall, jellyfish, beach_score]:
+            for row in table:
+                if 'beach_id' in row:
+                    if row['beach_id'] not in scores:
+                        scores[row['beach_id']] = row['score']
+                    else:
+                        scores[row['beach_id']] += row['score']
+
+                    if table == rainfall:
+                        rainfall_scores[row['beach_id']] = row['score']
+                    elif table == jellyfish:
+                        jellyfish_scores[row['beach_id']] = row['score']
+                    elif table == beach_score:
+                        beach_scores[row['beach_id']] = row['score']
+                        beach_names[row['beach_id']] = row['beach_name']
+
+        # 점수가 가장 높은 해수욕장 순으로 정렬합니다.
+        sorted_beaches = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+        # 최상위 3개의 해수욕장을 선택합니다.
+        top_beaches = [
+            {
+                'beach_name': beach_names[beach[0]],
+                'total_score': beach[1],
+                'rainfall_score': rainfall_scores.get(beach[0], 0),
+                'jellyfish_score': jellyfish_scores.get(beach[0], 0),
+                'beach_score': beach_scores.get(beach[0], 0)
+            }
+            for beach in sorted_beaches[:3]
+        ]
+
+        return Response(top_beaches)
 
