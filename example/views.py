@@ -135,78 +135,13 @@ class BeachInfraAPIView(APIView):
             )
 
 
-# ------추천점수-----#
+# -----추천점수 api-----#
 
 
-# class BeachScoresAPIView(APIView):
-#     def get(self, request, beach_id):
-#         try:
-#             beach_score = BeachScore.objects.get(beach_id=beach_id)
-#             jellyfish_score = JellyfishScore.objects.get(beach_id=beach_id)
-#             rainfall_score = RainfallScore.objects.get(beach_id=beach_id)
-
-#             beach_score_serializer = BeachScoreSerializer(beach_score)
-#             jellyfish_score_serializer = JellyfishScoreSerializer(jellyfish_score)
-#             rainfall_score_serializer = RainfallScoreSerializer(rainfall_score)
-
-#             return Response(
-#                 {
-#                     "beach_score": beach_score_serializer.data,
-#                     "jellyfish_score": jellyfish_score_serializer.data,
-#                     "rainfall_score": rainfall_score_serializer.data,
-#                 },
-#                 status=status.HTTP_200_OK,
-#             )
-#         except BeachScore.DoesNotExist:
-#             return Response(
-#                 {"error": "BeachScore data not found for the given beach_id."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-#         except JellyfishScore.DoesNotExist:
-#             return Response(
-#                 {"error": "JellyfishScore data not found for the given beach_id."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-#         except RainfallScore.DoesNotExist:
-#             return Response(
-#                 {"error": "RainfallScore data not found for the given beach_id."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#            )
-
-# @api_view(http_method_names=["GET"])
-# def beach_scores_api(request, beach_id):
-#     try:
-#         beach_score = BeachScore.objects.get(beach_id=beach_id)
-#         beach_score_serializer = BeachScoreSerializer(beach_score)
-
-#         response = {
-#             "beach_score": beach_score_serializer.data,
-#         }
-
-#         jellyfish_score = JellyfishScore.objects.filter(beach_id=beach_id).first()
-#         if jellyfish_score:
-#             jellyfish_score_serializer = JellyfishScoreSerializer(jellyfish_score)
-#             response["jellyfish_score"] = jellyfish_score_serializer.data
-#         else:
-#             response["jellyfish_score"] = {}
-
-#         rainfall_score = RainfallScore.objects.filter(beach_id=beach_id).first()
-#         if rainfall_score:
-#             rainfall_score_serializer = RainfallScoreSerializer(rainfall_score)
-#             response["rainfall_score"] = rainfall_score_serializer.data
-#         else:
-#             response["rainfall_score"] = {}
-
-
-#         return Response(response, status=status.HTTP_200_OK)
-#     except BeachScore.DoesNotExist:
-#         return Response(
-#             {"error": "BeachScore data not found for the given beach_id."},
-#             status=status.HTTP_404_NOT_FOUND,
-#         )
 @api_view(http_method_names=["GET"])
 def beach_scores_api(request, beach_id):
     try:
+        # 해수욕장 점수 정보 가져오기
         beach_score = BeachScore.objects.get(beach_id=beach_id)
         beach_score_serializer = BeachScoreSerializer(beach_score)
 
@@ -215,72 +150,45 @@ def beach_scores_api(request, beach_id):
         }
 
         try:
-            jellyfish_score = JellyfishScore.objects.get(beach_id=beach_id)
-            jellyfish_score_serializer = JellyfishScoreSerializer(jellyfish_score)
-            response["jellyfish_score"] = jellyfish_score_serializer.data
-        except JellyfishScore.DoesNotExist:
-            response["jellyfish_score"] = {}
+            # 해당 해수욕장의 위치(location) 가져오기
+            beach = Beach.objects.get(id=beach_id)
+            location = beach.location
+
+            # 해당 위치(location)의 해파리 점수 가져오기
+            try:
+                jellyfish_score = JellyfishScore.objects.get(location=location)
+                jellyfish_score_serializer = JellyfishScoreSerializer(jellyfish_score)
+                response["jellyfish_score"] = jellyfish_score_serializer.data
+            except JellyfishScore.DoesNotExist:
+                # 해당 위치(location)에 대한 해파리 점수 데이터가 없을 경우 빈 딕셔너리 반환
+                response["jellyfish_score"] = {}
+
+        except Beach.DoesNotExist:
+            # 주어진 beach_id에 해당하는 해수욕장 데이터가 없을 경우 에러 반환
+            return Response(
+                {"error": "해당 beach_id에 대한 해수욕장 데이터를 찾을 수 없습니다."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         try:
+            # 강수 점수 정보 가져오기
             rainfall_score = RainfallScore.objects.get(beach_id=beach_id)
             rainfall_score_serializer = RainfallScoreSerializer(rainfall_score)
             response["rainfall_score"] = rainfall_score_serializer.data
         except RainfallScore.DoesNotExist:
+            # 강수 점수 정보가 없을 경우 빈 딕셔너리 반환
             response["rainfall_score"] = {}
 
         return Response(response, status=status.HTTP_200_OK)
     except BeachScore.DoesNotExist:
+        # 주어진 beach_id에 해당하는 해수욕장 점수 데이터가 없을 경우 에러 반환
         return Response(
-            {"error": "BeachScore data not found for the given beach_id."},
+            {"error": "해당 beach_id에 대한 해수욕장 점수 데이터를 찾을 수 없습니다."},
             status=status.HTTP_404_NOT_FOUND,
         )
 
 
-# ---------예보 api-----#
-
-
-# class BeachWeatherAPIView(APIView):
-#     def get(self, request, beach_id):
-#         try:
-#             wind_speed = WindSpeed.objects.get(beach_id=beach_id)
-#             max_temperature = MaxTemperature.objects.get(beach_id=beach_id)
-#             wave_height = WaveHeight.objects.get(beach_id=beach_id)
-#             wind_direction = WindDirection.objects.get(beach_id=beach_id)
-
-#             wind_speed_serializer = WindSpeedSerializer(wind_speed)
-#             max_temp_serializer = MaxTemperatureSerializer(max_temperature)
-#             wave_height_serializer = WaveHeightSerializer(wave_height)
-#             wind_direction_serializer = WindDirectionSerializer(wind_direction)
-
-#             return Response(
-#                 {
-#                     "wind_speed": wind_speed_serializer.data,
-#                     "max_temperature": max_temp_serializer.data,
-#                     "wave_height": wave_height_serializer.data,
-#                     "wind_direction": wind_direction_serializer.data,
-#                 },
-#                 status=status.HTTP_200_OK,
-#             )
-#         except WindSpeed.DoesNotExist:
-#             return Response(
-#                 {"error": "WindSpeed data not found for the given beach_id."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-#         except MaxTemperature.DoesNotExist:
-#             return Response(
-#                 {"error": "MaxTemperature data not found for the given beach_id."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-#         except WaveHeight.DoesNotExist:
-#             return Response(
-#                 {"error": "WaveHeight data not found for the given beach_id."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-#         except WindDirection.DoesNotExist:
-#             return Response(
-#                 {"error": "WindDirection data not found for the given beach_id."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
+# -----예보 api-----#
 
 
 class BeachWeatherAPIView(APIView):
@@ -316,110 +224,3 @@ class BeachWeatherAPIView(APIView):
             response_data["wind_direction"] = {}
 
         return Response(response_data, status=status.HTTP_200_OK)
-
-
-# -----인프라만----#
-
-# from .models import BeachInfra
-# from .serializers import BeachInfraSerializer
-
-
-# @api_view(http_method_names=["GET"])
-# def Api(request):
-#     if "beach_id" in request.GET:
-#         queryset = BeachInfra.objects.filter(beach_id=request.GET["beach_id"])
-#         serializer = BeachInfraSerializer(queryset, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-#     else:
-#         return Response("Invalid beach_id provided.", status=status.HTTP_400_BAD_REQUEST)
-
-
-# # -----모두 반환 api----#
-
-
-# from .models import (
-#     BeachInfra,
-#     BeachScore,
-#     JellyfishScore,
-#     MaxTemperature,
-#     RainfallScore,
-#     WaveHeight,
-#     WindDirection,
-#     WindSpeed,
-# )
-# from .serializers import (
-#     BeachInfraSerializer,
-#     BeachScoreSerializer,
-#     JellyfishScoreSerializer,
-#     MaxTemperatureSerializer,
-#     RainfallScoreSerializer,
-#     WaveHeightSerializer,
-#     WindDirectionSerializer,
-#     WindSpeedSerializer,
-# )
-
-
-# @api_view(http_method_names=["GET"])
-# def Api(request):
-#     if "beach_id" in request.GET:
-#         beach_id = request.GET["beach_id"]
-#         try:
-#             beach_infra = BeachInfra.objects.get(beach_id=beach_id)
-#             wind_speed = WindSpeed.objects.get(beach_id=beach_id)
-#             wind_direction = WindDirection.objects.get(beach_id=beach_id)
-#             max_temperature = MaxTemperature.objects.get(beach_id=beach_id)
-#             wave_height = WaveHeight.objects.get(beach_id=beach_id)
-#             beach_score = BeachScore.objects.get(beach_id=beach_id)
-#             jellyfish_score = JellyfishScore.objects.get(beach_id=beach_id)
-#             rainfall_score = RainfallScore.objects.get(beach_id=beach_id)
-
-#             beach_infra_serializer = BeachInfraSerializer(beach_infra)
-#             wind_speed_serializer = WindSpeedSerializer(wind_speed)
-#             wind_direction_serializer = WindDirectionSerializer(wind_direction)
-#             max_temperature_serializer = MaxTemperatureSerializer(max_temperature)
-#             wave_height_serializer = WaveHeightSerializer(wave_height)
-#             beach_score_serializer = BeachScoreSerializer(beach_score)
-#             jellyfish_score_serializer = JellyfishScoreSerializer(jellyfish_score)
-#             rainfall_score_serializer = RainfallScoreSerializer(rainfall_score)
-
-#             response = {
-#                 "beach_infra": beach_infra_serializer.data,
-#                 "wind_speed": wind_speed_serializer.data,
-#                 "wind_direction": wind_direction_serializer.data,
-#                 "max_temperature": max_temperature_serializer.data,
-#                 "wave_height": wave_height_serializer.data,
-#                 "beach_score": beach_score_serializer.data,
-#                 "jellyfish_score": jellyfish_score_serializer.data,
-#                 "rainfall_score": rainfall_score_serializer.data,
-#             }
-
-#             return Response(response, status=status.HTTP_200_OK)
-#         except (
-#             BeachInfra.DoesNotExist,
-#             WindSpeed.DoesNotExist,
-#             WindDirection.DoesNotExist,
-#             MaxTemperature.DoesNotExist,
-#             WaveHeight.DoesNotExist,
-#             BeachScore.DoesNotExist,
-#             JellyfishScore.DoesNotExist,
-#             RainfallScore.DoesNotExist,
-#         ):
-#             return Response("Data not found for the given beach_id.", status=status.HTTP_404_NOT_FOUND)
-#     else:
-#         return Response("Invalid beach_id provided.", status=status.HTTP_400_BAD_REQUEST)
-
-# views.py
-
-
-# @api_view(http_method_names=["GET"])
-# defBeachInfraByLocationApi(request):
-#     if "location" in request.GET:
-#         location = request.GET["location"]
-#         try:
-#             beach_infra_list = BeachInfra.objects.filter(beach_id__location=location)
-#             serializer = BeachInfraSerializer(beach_infra_list, many=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except BeachInfra.DoesNotExist:
-#             return Response("Data not found for the given location.", status=status.HTTP_404_NOT_FOUND)
-#     else:
-#         return Response("Invalid location provided.", status=status.HTTP_400_BAD_REQUEST)

@@ -10,8 +10,6 @@ urlpatterns = [
     path("accident/", views.accidentApi, name="example_accident"),
     path("equipment/", equipmentAPI),
     path("beach-weather/<int:beach_id>/", BeachWeatherAPIView.as_view(), name="beach_weather_api"),
-    # path("beach-scores/<int:beach_id>/", BeachScoresAPIView.as_view(), name="beach_scores_api"),
     path("beach-infra/<int:beach_id>/", BeachInfraAPIView.as_view(), name="beach_infra_api"),
     path("beach-scores/<int:beach_id>/", beach_scores_api, name="beach-scores-api"),
-    # path("api/", views.Api, name="example_api"),
 ]
