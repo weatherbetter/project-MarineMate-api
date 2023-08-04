@@ -109,11 +109,11 @@ class BeachRecommendationView(APIView):
         beach_ids = BeachScore.objects.filter(location=region).values('beach_id')
 
         # 각 테이블에서 가장 최신 데이터를 가져오고 점수를 계산합니다.
-        latest_rainfall_date = Rainfall.objects.latest('date').date
-        rainfall = Rainfall.objects.filter(beach_id__in=beach_ids, date=latest_rainfall_date).annotate(score=F('rain_score')).values('beach_id', 'score')
+        latest_rainfall_date = RainfallScore.objects.latest('date').date
+        rainfall = RainfallScore.objects.filter(beach_id__in=beach_ids, date=latest_rainfall_date).annotate(score=F('rain_score')).values('beach_id', 'score')
 
-        latest_jellyfish_date = Jellyfish.objects.latest('date').date
-        jellyfish = Jellyfish.objects.filter(beach_id__in=beach_ids, date=latest_jellyfish_date).annotate(score=4 - F('jellyfish_score')).values('beach_id', 'score')
+        latest_jellyfish_date = JellyfishScore.objects.latest('date').date
+        jellyfish = JellyfishScore.objects.filter(beach_id__in=beach_ids, date=latest_jellyfish_date).annotate(score=4 - F('jellyfish_score')).values('beach_id', 'score')
 
         beach_score = BeachScore.objects.filter(location=region).annotate(score=F('water_score') + F('soil_score') + F('facility_score')).values('beach_id', 'score', 'beach_name')
 
