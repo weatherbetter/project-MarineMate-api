@@ -226,18 +226,18 @@ class BeachWeatherAPIView(APIView):
 
 @api_view(http_method_names=["GET"])
 def safetyApi(request: Request):
-    if "location" not in request.GET:
-        return Response({"error": "The 'location' parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+    if "location" in request.GET:
+        # 소방서 수
+        fs_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("fs_cnt")
+        # 안전센터 수
+        sc_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("sc_cnt")
+        # 펌뷸런스 수
+        fb_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("fb_cnt")
 
-    # 소방서 수
-    fs_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("fs_cnt")
-    # 안전센터 수
-    sc_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("sc_cnt")
-    # 펌뷸런스 수
-    fb_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("fb_cnt")
+        response = {
+            "Fire Station": fs_cnt[0]["fs_cnt"],
+            "Safety Center": sc_cnt[0]["sc_cnt"],
+            "Pumbulance": fb_cnt[0]["fb_cnt"],
+        }
 
-    # 오류 확인
-    if not fs_cnt or not sc_cnt or not fb_cnt:
-        return Response(
-            {"error": "No safety infrastructure data found for the given location."}, status=status.HTTP_404_NOT_FOUND
-        )
+    return Response(data=response, status=status.HTTP_200_OK)
