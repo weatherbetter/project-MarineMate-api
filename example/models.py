@@ -121,7 +121,6 @@ class JellyfishScore(models.Model):
     jellyfish_score = models.IntegerField()  # 해파리 점수
     date = models.DateField(auto_now=True)  # 날짜
     location = models.CharField(max_length=10)  # 지역
-    # ForeignKey
 
     class Meta:
         db_table = "JellyfishScore"

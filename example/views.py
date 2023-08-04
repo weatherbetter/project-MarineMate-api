@@ -1,6 +1,6 @@
 # from .serializers import AccidentSerializer,AccidentMonthSerializer
 
-from django.db.models import Count
+from django.db.models import Count, F
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from rest_framework import status
@@ -20,6 +20,7 @@ from .models import (
     LifesavingEquipment,
     MaxTemperature,
     RainfallScore,
+    SafetyInfra,
     WaveHeight,
     WindDirection,
     WindSpeed,
@@ -40,9 +41,6 @@ from .serializers import (
 def index(request: HttpRequest):
     response = {"message": "Hi world it is updated!?"}
     return JsonResponse(response)
-
-
-# 수난사고 현황 API
 
 
 @api_view(http_method_names=["GET"])
@@ -106,7 +104,7 @@ def accidentApi(request: Request):
 
 # -----인명구조장비함 api-----#
 @api_view(["GET"])
-def equipmentAPI(request):
+def equipmentApi(request):
     totalequipment = LifesavingEquipment.objects.all()  # 모델로 만들어진 객체를 모두 가져오기
     serializer = EquipmentSerializer(totalequipment, many=True)  # 다양한 내용들에 대해 내부적으로도 직렬화
     return Response(serializer.data)
@@ -224,3 +222,91 @@ class BeachWeatherAPIView(APIView):
             response_data["wind_direction"] = {}
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+@api_view(http_method_names=["GET"])
+def safetyApi(request: Request):
+    if "location" in request.GET:
+        # 소방서 수
+        fs_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("fs_cnt")
+        # 안전센터 수
+        sc_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("sc_cnt")
+        # 펌뷸런스 수
+        fb_cnt = SafetyInfra.objects.filter(location=request.GET["location"]).values("fb_cnt")
+
+        response = {
+            "Fire Station": fs_cnt[0]["fs_cnt"],
+            "Safety Center": sc_cnt[0]["sc_cnt"],
+            "Pumbulance": fb_cnt[0]["fb_cnt"],
+        }
+
+    return Response(data=response, status=status.HTTP_200_OK)
+
+
+class BeachRecommendationView(APIView):
+    def get(self, request, format=None):
+        # 사용자 입력 데이터
+        region = request.GET.get("location")
+
+        # BeachScore 테이블에서 선택한 지역의 beach_id 목록을 가져옵니다.
+        beach_ids = BeachScore.objects.filter(location=region).values("beach_id")
+
+        # 각 테이블에서 가장 최신 데이터를 가져오고 점수를 계산합니다.
+        latest_rainfall_date = Rainfall.objects.latest("date").date
+        rainfall = (
+            Rainfall.objects.filter(beach_id__in=beach_ids, date=latest_rainfall_date)
+            .annotate(score=F("rain_score"))
+            .values("beach_id", "score")
+        )
+
+        latest_jellyfish_date = Jellyfish.objects.latest("date").date
+        jellyfish = (
+            Jellyfish.objects.filter(beach_id__in=beach_ids, date=latest_jellyfish_date)
+            .annotate(score=4 - F("jellyfish_score"))
+            .values("beach_id", "score")
+        )
+
+        beach_score = (
+            BeachScore.objects.filter(location=region)
+            .annotate(score=F("water_score") + F("soil_score") + F("facility_score"))
+            .values("beach_id", "score", "beach_name")
+        )
+
+        # 각 테이블의 점수를 합산합니다.
+        scores = {}
+        beach_scores = {}
+        rainfall_scores = {}
+        jellyfish_scores = {}
+        beach_names = {}
+        for table in [rainfall, jellyfish, beach_score]:
+            for row in table:
+                if "beach_id" in row:
+                    if row["beach_id"] not in scores:
+                        scores[row["beach_id"]] = row["score"]
+                    else:
+                        scores[row["beach_id"]] += row["score"]
+
+                    if table == rainfall:
+                        rainfall_scores[row["beach_id"]] = row["score"]
+                    elif table == jellyfish:
+                        jellyfish_scores[row["beach_id"]] = row["score"]
+                    elif table == beach_score:
+                        beach_scores[row["beach_id"]] = row["score"]
+                        beach_names[row["beach_id"]] = row["beach_name"]
+
+        # 점수가 가장 높은 해수욕장 순으로 정렬합니다.
+        sorted_beaches = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+        # 최상위 3개의 해수욕장을 선택합니다.
+        top_beaches = [
+            {
+                "beach_name": beach_names[beach[0]],
+                "total_score": beach[1],
+                "rainfall_score": rainfall_scores.get(beach[0], 0),
+                "jellyfish_score": jellyfish_scores.get(beach[0], 0),
+                "beach_score": beach_scores.get(beach[0], 0),
+            }
+            for beach in sorted_beaches[:3]
+        ]
+
+        return Response(top_beaches)
