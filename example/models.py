@@ -57,7 +57,7 @@ class WindSpeed(models.Model):
     wind_speed = models.IntegerField()  # 풍속
     beach_name = models.CharField(max_length=15)  # 해수욕장명
     # ForeignKey
-    beach_id = models.OneToOneField(Beach, on_delete=models.CASCADE, db_column="beach_id")
+    beach_id = models.ForeignKey(Beach, on_delete=models.CASCADE, db_column="beach_id")
 
     class Meta:
         db_table = "WindSpeed"
@@ -69,7 +69,7 @@ class MaxTemperature(models.Model):
     day_max_temp = models.FloatField()  # 낮 최고기온
     beach_name = models.CharField(max_length=15)  # 해수욕장명
     # ForeignKey
-    beach_id = models.OneToOneField(Beach, on_delete=models.CASCADE, db_column="beach_id")
+    beach_id = models.ForeignKey(Beach, on_delete=models.CASCADE, db_column="beach_id")
 
     class Meta:
         db_table = "MaxTemperature"
@@ -81,7 +81,7 @@ class WaveHeight(models.Model):
     wave_height = models.FloatField()  # 파고
     beach_name = models.CharField(max_length=15)  # 해수욕장명
     # ForeignKey
-    beach_id = models.OneToOneField(Beach, on_delete=models.CASCADE, db_column="beach_id")
+    beach_id = models.ForeignKey(Beach, on_delete=models.CASCADE, db_column="beach_id")
 
     class Meta:
         db_table = "WaveHeight"
@@ -93,7 +93,7 @@ class WindDirection(models.Model):
     wind_direction = models.CharField(max_length=10)  # 풍향
     beach_name = models.CharField(max_length=15)  # 해수욕장명
     # ForeignKey
-    beach_id = models.OneToOneField(Beach, on_delete=models.CASCADE, db_column="beach_id")
+    beach_id = models.ForeignKey(Beach, on_delete=models.CASCADE, db_column="beach_id")
 
     class Meta:
         db_table = "WindDirection"
