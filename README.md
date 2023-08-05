@@ -21,14 +21,13 @@ Prerequisite in Local
 ```bash
   pip install poetry
   poetry install
-  poetry shell
   pre-commit install
-  python manage.py makemigrations --settings=config.settings.local
-  python manage.py migrate --settings=config.settings.local
-  python manage.py createsuperuser --settings=config.settings.local
 ```
 Start the server in Local
 
 ```bash
+  poetry shell
+  python manage.py makemigrations --settings=config.settings.local
+  python manage.py migrate --settings=config.settings.local
   python manage.py runserver --settings=config.settings.local
 ```
