@@ -39,7 +39,7 @@ from .serializers import (
 
 
 def index(request: HttpRequest):
-    response = {"message": "Hi world it is updated!?"}
+    response = {"message": "Hi world it is updated."}
     return JsonResponse(response)
 
 
@@ -99,8 +99,12 @@ def accidentApi(request: Request):
             "place": place,
             "place_counts": place_counts,
         }
-    return Response(data=response, status=status.HTTP_200_OK)
-
+        return Response(data=response, status=status.HTTP_200_OK)
+    else:
+        return Response(
+            {"error": "need location parameter"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
 # -----인명구조장비함 api-----#
 @api_view(["GET"])
@@ -242,6 +246,62 @@ def safetyApi(request: Request):
         return Response(data=response, status=status.HTTP_200_OK)
     else:
         return Response(
-            {"error": "location 입력"},
+            {"error": "need location parameter"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+@api_view(http_method_names=["GET"])
+def beachRecommendApi(request: Request):
+    if "location" in request.GET:
+        region = request.GET["location"]
+        all_locations = BeachScore.objects.values_list('location', flat=True).distinct()
+
+        # BeachScore 테이블에서 선택한 지역의 beach_id 목록을 가져옵니다.
+        beach_ids = BeachScore.objects.filter(location=region).values_list('beach_id', flat=True)
+
+        # 각 테이블에서 가장 최신 데이터를 가져오고 점수를 계산합니다.
+        rainfall = RainfallScore.objects.filter(beach_id__in=beach_ids).annotate(score=F('rain_score')).values('beach_id', 'score')
+
+        jellyfish = JellyfishScore.objects.filter(location=region).annotate(score=4 - F('jellyfish_score')).values('location', 'score')
+
+        beach_score = BeachScore.objects.filter(location=region).annotate(score=F('water_score') + F('soil_score') + F('facility_score')).values('beach_id', 'score', 'beach_name')
+
+        # 각 테이블의 점수를 합산합니다.
+        scores = {}
+        beach_scores = {}
+        rainfall_scores = {}
+        jellyfish_scores = {}
+        beach_names = {}
+        for table in [(rainfall, 'beach_id', rainfall_scores), (jellyfish, 'location', jellyfish_scores), (beach_score, 'beach_id', beach_scores)]:
+            for row in table[0]:
+                if table[1] in row:
+                    if row[table[1]] not in scores:
+                        scores[row[table[1]]] = row['score']
+                    else:
+                        scores[row[table[1]]] += row['score']
+
+                    table[2][row[table[1]]] = row['score']
+                    if table[0] == beach_score:
+                        beach_names[row[table[1]]] = row['beach_name']
+
+        # 점수가 가장 높은 해수욕장 순으로 정렬합니다.
+        sorted_beaches = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+        # 최상위 3개의 해수욕장을 선택합니다.
+        top_beaches = [
+            {
+                'beach_name': beach_names[beach[0]],
+                'total_score': beach[1],
+                'rainfall_score': rainfall_scores.get(beach[0], 0),
+                'jellyfish_score': jellyfish_scores.get(beach[0], 0),
+                'beach_score': beach_scores.get(beach[0], 0)
+            }
+            for beach in sorted_beaches[:3]
+        ]
+
+        return Response(data=top_beaches, status=status.HTTP_200_OK)
+    else:
+        return Response(
+            {"error": "need location parameter"},
             status=status.HTTP_404_NOT_FOUND,
         )

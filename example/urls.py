@@ -14,4 +14,5 @@ urlpatterns = [
     # path("equipment/", equipmentAPI),
     path("equipment/", views.equipmentApi, name="example_equipment"),
     path("safety/", views.safetyApi, name="example_safety"),
+    path("recommendation/", views.beachRecommendApi),
 ]
