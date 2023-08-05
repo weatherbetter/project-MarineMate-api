@@ -106,6 +106,7 @@ def accidentApi(request: Request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+
 # -----인명구조장비함 api-----#
 @api_view(["GET"])
 def equipmentApi(request):
@@ -197,33 +198,33 @@ class BeachWeatherAPIView(APIView):
     def get(self, request, beach_id):
         response_data = {}
 
-        try:
-            wind_speed = WindSpeed.objects.get(beach_id=beach_id)
-            wind_speed_serializer = WindSpeedSerializer(wind_speed)
+        wind_speeds = WindSpeed.objects.filter(beach_id=beach_id)
+        if wind_speeds.exists():
+            wind_speed_serializer = WindSpeedSerializer(wind_speeds, many=True)
             response_data["wind_speed"] = wind_speed_serializer.data
-        except WindSpeed.DoesNotExist:
-            response_data["wind_speed"] = {}
+        else:
+            response_data["wind_speed"] = []
 
-        try:
-            max_temperature = MaxTemperature.objects.get(beach_id=beach_id)
-            max_temp_serializer = MaxTemperatureSerializer(max_temperature)
+        max_temperatures = MaxTemperature.objects.filter(beach_id=beach_id)
+        if max_temperatures.exists():
+            max_temp_serializer = MaxTemperatureSerializer(max_temperatures, many=True)
             response_data["max_temperature"] = max_temp_serializer.data
-        except MaxTemperature.DoesNotExist:
-            response_data["max_temperature"] = {}
+        else:
+            response_data["max_temperature"] = []
 
-        try:
-            wave_height = WaveHeight.objects.get(beach_id=beach_id)
-            wave_height_serializer = WaveHeightSerializer(wave_height)
+        wave_heights = WaveHeight.objects.filter(beach_id=beach_id)
+        if wave_heights.exists():
+            wave_height_serializer = WaveHeightSerializer(wave_heights, many=True)
             response_data["wave_height"] = wave_height_serializer.data
-        except WaveHeight.DoesNotExist:
-            response_data["wave_height"] = {}
+        else:
+            response_data["wave_height"] = []
 
-        try:
-            wind_direction = WindDirection.objects.get(beach_id=beach_id)
-            wind_direction_serializer = WindDirectionSerializer(wind_direction)
+        wind_directions = WindDirection.objects.filter(beach_id=beach_id)
+        if wind_directions.exists():
+            wind_direction_serializer = WindDirectionSerializer(wind_directions, many=True)
             response_data["wind_direction"] = wind_direction_serializer.data
-        except WindDirection.DoesNotExist:
-            response_data["wind_direction"] = {}
+        else:
+            response_data["wind_direction"] = []
 
         return Response(response_data, status=status.HTTP_200_OK)
 
@@ -250,21 +251,34 @@ def safetyApi(request: Request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+
 @api_view(http_method_names=["GET"])
 def beachRecommendApi(request: Request):
     if "location" in request.GET:
         region = request.GET["location"]
-        all_locations = BeachScore.objects.values_list('location', flat=True).distinct()
+        all_locations = BeachScore.objects.values_list("location", flat=True).distinct()
 
         # BeachScore 테이블에서 선택한 지역의 beach_id 목록을 가져옵니다.
-        beach_ids = BeachScore.objects.filter(location=region).values_list('beach_id', flat=True)
+        beach_ids = BeachScore.objects.filter(location=region).values_list("beach_id", flat=True)
 
         # 각 테이블에서 가장 최신 데이터를 가져오고 점수를 계산합니다.
-        rainfall = RainfallScore.objects.filter(beach_id__in=beach_ids).annotate(score=F('rain_score')).values('beach_id', 'score')
+        rainfall = (
+            RainfallScore.objects.filter(beach_id__in=beach_ids)
+            .annotate(score=F("rain_score"))
+            .values("beach_id", "score")
+        )
 
-        jellyfish = JellyfishScore.objects.filter(location=region).annotate(score=4 - F('jellyfish_score')).values('location', 'score')
+        jellyfish = (
+            JellyfishScore.objects.filter(location=region)
+            .annotate(score=4 - F("jellyfish_score"))
+            .values("location", "score")
+        )
 
-        beach_score = BeachScore.objects.filter(location=region).annotate(score=F('water_score') + F('soil_score') + F('facility_score')).values('beach_id', 'score', 'beach_name')
+        beach_score = (
+            BeachScore.objects.filter(location=region)
+            .annotate(score=F("water_score") + F("soil_score") + F("facility_score"))
+            .values("beach_id", "score", "beach_name")
+        )
 
         # 각 테이블의 점수를 합산합니다.
         scores = {}
@@ -272,17 +286,21 @@ def beachRecommendApi(request: Request):
         rainfall_scores = {}
         jellyfish_scores = {}
         beach_names = {}
-        for table in [(rainfall, 'beach_id', rainfall_scores), (jellyfish, 'location', jellyfish_scores), (beach_score, 'beach_id', beach_scores)]:
+        for table in [
+            (rainfall, "beach_id", rainfall_scores),
+            (jellyfish, "location", jellyfish_scores),
+            (beach_score, "beach_id", beach_scores),
+        ]:
             for row in table[0]:
                 if table[1] in row:
                     if row[table[1]] not in scores:
-                        scores[row[table[1]]] = row['score']
+                        scores[row[table[1]]] = row["score"]
                     else:
-                        scores[row[table[1]]] += row['score']
+                        scores[row[table[1]]] += row["score"]
 
-                    table[2][row[table[1]]] = row['score']
+                    table[2][row[table[1]]] = row["score"]
                     if table[0] == beach_score:
-                        beach_names[row[table[1]]] = row['beach_name']
+                        beach_names[row[table[1]]] = row["beach_name"]
 
         # 점수가 가장 높은 해수욕장 순으로 정렬합니다.
         sorted_beaches = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -290,11 +308,11 @@ def beachRecommendApi(request: Request):
         # 최상위 3개의 해수욕장을 선택합니다.
         top_beaches = [
             {
-                'beach_name': beach_names[beach[0]],
-                'total_score': beach[1],
-                'rainfall_score': rainfall_scores.get(beach[0], 0),
-                'jellyfish_score': jellyfish_scores.get(region, 0), 
-                'beach_score': beach_scores.get(beach[0], 0)
+                "beach_name": beach_names[beach[0]],
+                "total_score": beach[1],
+                "rainfall_score": rainfall_scores.get(beach[0], 0),
+                "jellyfish_score": jellyfish_scores.get(region, 0),
+                "beach_score": beach_scores.get(beach[0], 0),
             }
             for beach in sorted_beaches[:3]
         ]
