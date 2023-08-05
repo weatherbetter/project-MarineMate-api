@@ -309,7 +309,9 @@ def beachRecommendApi(request: Request):
         top_beaches = [
             {
                 "beach_name": beach_names[beach[0]],
-                "total_score": beach[1],
+                "total_score": rainfall_scores.get(beach[0], 0)
+                + jellyfish_scores.get(region, 0)
+                + beach_scores.get(beach[0], 0),
                 "rainfall_score": rainfall_scores.get(beach[0], 0),
                 "jellyfish_score": jellyfish_scores.get(region, 0),
                 "beach_score": beach_scores.get(beach[0], 0),

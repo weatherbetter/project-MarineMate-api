@@ -15,5 +15,6 @@ ignore =
     E712,
     E722,
     F821,
-    F841
+    F841,
+    W503
 black-config = pyproject.toml
