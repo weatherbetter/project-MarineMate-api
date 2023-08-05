@@ -15,4 +15,5 @@ urlpatterns = [
     path("equipment/", views.equipmentApi, name="example_equipment"),
     path("safety/", views.safetyApi, name="example_safety"),
     path("recommendation/", views.beachRecommendApi),
+    path("jellyfish/", views.get_jellyfish_scores),
 ]

@@ -1,6 +1,6 @@
 # from .serializers import AccidentSerializer,AccidentMonthSerializer
 
-from django.db.models import Count, F
+from django.db.models import Count, F, Max
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from rest_framework import status
@@ -305,3 +305,19 @@ def beachRecommendApi(request: Request):
             {"error": "need location parameter"},
             status=status.HTTP_404_NOT_FOUND,
         )
+
+@api_view(['GET'])
+def get_jellyfish_scores(request):
+    # 지역별 최신 날짜
+    recent_dates = JellyfishScore.objects.values('location').annotate(recent_date=Max('date'))
+
+    # 점수 딕셔너리
+    scores = {}
+
+    # 지역별 점수
+    for item in recent_dates:
+        score = JellyfishScore.objects.filter(location=item['location'], date=item['recent_date']).first()
+        if score:
+            scores[score.location] = score.jellyfish_score
+
+    return Response(scores)
