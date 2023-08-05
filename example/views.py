@@ -239,5 +239,9 @@ def safetyApi(request: Request):
             "Safety Center": sc_cnt[0]["sc_cnt"],
             "Pumbulance": fb_cnt[0]["fb_cnt"],
         }
-
-    return Response(data=response, status=status.HTTP_200_OK)
+        return Response(data=response, status=status.HTTP_200_OK)
+    else:
+        return Response(
+            {"error": "location 입력"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
