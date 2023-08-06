@@ -141,56 +141,6 @@ class BeachInfraAPIView(APIView):
 # -----추천점수 api-----#
 
 
-# @api_view(http_method_names=["GET"])
-# def beach_scores_api(request, beach_id):
-#     try:
-#         # 해수욕장 점수 정보 가져오기
-#         beach_score = BeachScore.objects.get(beach_id=beach_id)
-#         beach_score_serializer = BeachScoreSerializer(beach_score)
-
-#         response = {
-#             "beach_score": beach_score_serializer.data,
-#         }
-
-#         try:
-#             # 해당 해수욕장의 위치(location) 가져오기
-#             beach = Beach.objects.get(id=beach_id)
-#             location = beach.location
-
-#             # 해당 위치(location)의 해파리 점수 가져오기
-#             try:
-#                 jellyfish_score = JellyfishScore.objects.get(location=location)
-#                 jellyfish_score_serializer = JellyfishScoreSerializer(jellyfish_score)
-#                 response["jellyfish_score"] = jellyfish_score_serializer.data
-#             except JellyfishScore.DoesNotExist:
-#                 # 해당 위치(location)에 대한 해파리 점수 데이터가 없을 경우 빈 딕셔너리 반환
-#                 response["jellyfish_score"] = {}
-
-#         except Beach.DoesNotExist:
-#             # 주어진 beach_id에 해당하는 해수욕장 데이터가 없을 경우 에러 반환
-#             return Response(
-#                 {"error": "해당 beach_id에 대한 해수욕장 데이터를 찾을 수 없습니다."},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-
-#         try:
-#             # 강수 점수 정보 가져오기
-#             rainfall_score = RainfallScore.objects.get(beach_id=beach_id)
-#             rainfall_score_serializer = RainfallScoreSerializer(rainfall_score)
-#             response["rainfall_score"] = rainfall_score_serializer.data
-#         except RainfallScore.DoesNotExist:
-#             # 강수 점수 정보가 없을 경우 빈 딕셔너리 반환
-#             response["rainfall_score"] = {}
-
-#         return Response(response, status=status.HTTP_200_OK)
-#     except BeachScore.DoesNotExist:
-#         # 주어진 beach_id에 해당하는 해수욕장 점수 데이터가 없을 경우 에러 반환
-#         return Response(
-#             {"error": "해당 beach_id에 대한 해수욕장 점수 데이터를 찾을 수 없습니다."},
-#             status=status.HTTP_404_NOT_FOUND,
-#         )
-
-
 @api_view(http_method_names=["GET"])
 def beach_scores_api(request, beach_id):
     try:
