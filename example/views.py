@@ -308,6 +308,12 @@ def beachRecommendApi(request: Request):
         sorted_beaches = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
         # 최상위 3개의 해수욕장을 선택합니다.
+        TOP_COUNT = 3
+        if len(sorted_beaches) > TOP_COUNT:
+            sorted_beaches = sorted_beaches[:TOP_COUNT]
+        else:
+            sorted_beaches = sorted_beaches[:-1]
+            
         top_beaches = [
             {
                 "beach_id": beach[0], 
