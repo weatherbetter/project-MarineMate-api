@@ -310,6 +310,7 @@ def beachRecommendApi(request: Request):
         # 최상위 3개의 해수욕장을 선택합니다.
         top_beaches = [
             {
+                "beach_id": beach[0], 
                 "beach_name": beach_names[beach[0]],
                 "total_score": rainfall_scores.get(beach[0], 0)
                 + jellyfish_scores.get(region, 0)
