@@ -20,3 +20,9 @@ DATABASES = {
 # CORS_ALLOWED_ORIGINS = [
 # ]
 CORS_ORIGIN_ALLOW_ALL = True
+
+REST_FRAMEWORK = {
+     'DEFAULT_RENDERER_CLASSES': (
+         'rest_framework.renderers.JSONRenderer',
+     )
+ }
